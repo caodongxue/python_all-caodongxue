@@ -1,0 +1,217 @@
+一、db数据库编写
+
+CREATE DATABASE db CHARACTER SET utf8;
+USE  db;
+CREATE TABLE Article(
+        商品号 CHAR(10) PRIMARY KEY,
+        商品名 CHAR(10),
+        单价  FLOAT(8),
+        库存量  INT
+);
+CREATE TABLE customer(
+        顾客号 CHAR(10) PRIMARY KEY,
+        顾客名 CHAR(10),
+        性别 CHAR(2),
+        年龄   INT
+);
+CREATE TABLE orderitem(
+       顾客号 CHAR(10),
+       商品号 CHAR(10),
+       数量 INT,
+       购买价 FLOAT(8),
+       购买日期 DATETIME, 
+       PRIMARY KEY(顾客号,商品号,购买日期)
+       
+);
+
+ALTER TABLE Article ADD CONSTRAINT ck_单价 CHECK(单价>0);
+
+ALTER TABLE orderitem ADD CONSTRAINT FK_article_orderitem FOREIGN KEY(商品号) REFERENCES article (商品号);
+
+ALTER TABLE orderitem ADD CONSTRAINT FK_customer_orderitem FOREIGN KEY(顾客号) REFERENCES customer (顾客号);
+
+INSERT INTO article VALUE
+('S001','计算机',5000,10),
+('S002','打印机',1000,12),
+('S003','洗衣机',800,10),
+('s004','电冰箱',1100,20);
+
+
+INSERT INTO customer VALUE
+('G001','张三','男',29),
+('G002','李四','女',25),
+('G003','王五','女',31),
+('G004','赵六','男',25);
+
+INSERT INTO orderitem VALUE
+('G001','S001',2,4000,'2015-08-16'),
+('G001','S002',1,800,'2008-01-25'),
+('G001','S003',3,600,'2008-01-25'),
+('G001','S004',1,880,'2008-01-25'),
+('G002','S001',3,4500,'2008-01-01'),
+('G003','S001',1,5000,'2008-01-01'),
+('G003','S002',1,1000,'2008-01-01');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+二、studentdata数据库编写
+CREATE DATABASE studentdata CHARACTER SET utf8;
+CREATE TABLE student(
+       sno CHAR(4),
+       sn CHAR(8),
+       sex CHAR(2),
+       age INT(2),
+       dept INT, 
+       PRIMARY KEY(sno,sn,sex,dept)
+
+);
+
+
+CREATE TABLE course(
+       cno CHAR(4),
+       cn CHAR(19),
+       PRIMARY KEY(cno,cn)
+);
+
+
+CREATE TABLE studentcourse(
+       sno CHAR(4),
+       cno CHAR(4),
+       grade INT,
+       PRIMARY KEY(sno,cno)
+
+);
+
+ALTER TABLE student ADD CONSTRAINT ck_age CHECK(15<=age AND age<=45);
+
+ALTER TABLE student ADD CONSTRAINT ck_sex CHECK(sex='男' OR sex='女');
+
+ALTER TABLE student ADD CONSTRAINT ck_dept CHECK(1<=dept AND dept<=9);
+
+ALTER TABLE studentcourse ADD CONSTRAINT FK_student_studentcourse FOREIGN KEY(sno) REFERENCES student (sno);
+
+ALTER TABLE studentcourse ADD CONSTRAINT FK_course_studentcourse FOREIGN KEY(cno) REFERENCES course (cno);
+
+INSERT INTO student VALUE
+('S1','徐啸','女',17,2),
+('S2','辛国华','男',18,6),
+('S3','徐玮','女',20,1),
+('S4','邓一鸥','男',23,6),
+('S5','张激扬','男',19,6),
+('S6','张辉','女',22,3),
+('S7','王克华','男',18,6),
+('S8','王刃','男',19,3);
+
+INSERT INTO course VALUE
+('C1','数学'),
+('C2','英语'),
+('C3','Fortran77'),
+('C4','Pascal'),
+('C5','政治'),
+('C6','物理'),
+('C7','逻辑');
+
+INSERT INTO studentcourse VALUE
+('S1','C1',80),
+('S1','C2',85),
+('S1','C4',56),
+('S1','C5',90),
+('S1','C6',75),
+('S2','C1',47),
+('S2','C3',80),
+('S2','C4',75),
+('S2','C5',70),
+('S3','C1',76),
+('S3','C2',70),
+('S3','C3',85),
+('S3','C4',86),
+('S3','C5',90),
+('S3','C6',99),
+('S4','C1',83),
+('S4','C2',85),
+('S4','C3',83),
+('S5','C2',99),
+('S6','C1',96),
+('S6','C2',80),
+('S6','C3',87),
+('S6','C4',85);
+
+
+-- 从学生中，检索出分数大于 85, 小于 95 之间的学生号及课程号，并用汉字显示
+-- 其属性
+SELECT sno 学生号,cno 课程号,grade 成绩 FROM studentcourse
+WHERE grade>85 AND grade<95
+-- 从学生中，检索出学号分别为 S2，S4，S6 的学生姓名，年龄，并用汉字显示其属性
+SELECT sn 学生名,age 学生年龄 FROM student
+WHERE sno IN ('S2','S4','S6')
+
+
+
+
+-- 多表查询
+-- 检索所有比徐萍年龄大的学生姓名，年龄，性别 以及徐萍的年龄，结果标题用中文
+CREATE TABLE student1(
+       sno CHAR(4),
+       sn CHAR(8),
+       sex CHAR(2),
+       age INT(2),
+       dept INT, 
+       PRIMARY KEY(sno,sn,sex,dept)
+);
+
+INSERT INTO student1 VALUE
+('S1','徐萍','女',17,2);
+
+
+SELECT student.sn 姓名,student.age 年龄,student.sex 性别,student1.age 徐萍的年龄
+FROM  student, student1 
+WHERE student.age>student1.age AND student1.sn='徐萍';
+
+
+
+
+-- 模糊查询
+-- 查询姓徐的同学的课程成绩情况
+SELECT student.`sn` 姓名,studentcourse.`cno` 课程名,studentcourse.`grade` 分数
+FROM studentcourse
+JOIN student ON studentcourse.`sno`=student.`sno`
+JOIN course ON course.`cno`=studentcourse.`cno`
+WHERE sn LIKE '徐%'
+
+
+
+-- 复杂数据查询
+-- 查询与学号 S5 同学相同系别的学号
+SELECT sn 与S5同样的姓名,dept 系别,sno 学号
+FROM student
+WHERE dept IN(SELECT dept FROM student WHERE sno='S5')
+
+
+
+-- 使用统计函数查询
+SELECT COUNT(sno) 学生总数, AVG(age) 年龄,MAX(age) 最大年龄,MIN(age) 最小年龄
+FROM student
+
+
+
+-- 查询学生表并按学生号降序排序
+SELECT *
+FROM student
+ORDER BY sno DESC;
+
+-- 查询学生表里男女的人数
+
+SELECT sex 性别,COUNT(*) 人数
+FROM student
+GROUP BY sex
